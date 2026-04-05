@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AAYUzBG - Elite Skyblock Tools</title>
+    <style>
+        :root {
+            --primary: #ff004c;
+            --secondary: #0070f3;
+            --bg-light: #f0f2f5;
+            --text-main: #1f2937;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; }
+        
+        body { 
+            background: var(--bg-light); 
+            color: var(--text-main); 
+            min-height: 100vh; 
+            -webkit-tap-highlight-color: transparent;
+            padding-bottom: 30px;
+        }
+
+        /* Navigation */
+        .top-nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 15px; background: white; border-bottom: 1px solid #eee;
+            position: sticky; top: 0; z-index: 1000;
+            height: 60px;
+        }
+        .logo { font-weight: 800; font-size: 1.1rem; letter-spacing: -0.5px; }
+        #nav-user-name { color: var(--secondary); font-weight: 600; font-size: 10px; background: #e0f2fe; padding: 5px 12px; border-radius: 20px; cursor: pointer; }
+
+        /* Tabs */
+        #main-tabs { display: flex; background: #fff; margin: 15px 10px 10px 10px; border-radius: 12px; padding: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .menu-btn { flex: 1; padding: 12px; border: none; background: transparent; color: #6b7280; cursor: pointer; font-weight: 700; font-size: 11px; border-radius: 10px; transition: 0.2s; }
+        .menu-btn.active { color: white; background: var(--secondary); }
+        .menu-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        section { display: none; padding: 10px; max-width: 480px; margin: 0 auto; animation: fadeIn 0.3s ease; }
+        section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Welcome & Auth Card */
+        .auth-card { background: white; padding: 25px; border-radius: 24px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #eee; }
+        .auth-input { margin-bottom: 12px; }
+
+        /* Grid Buttons */
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .feature-card { background: white; padding: 25px; border-radius: 20px; text-align: center; cursor: pointer; border: 1px solid #eee; transition: 0.3s; }
+        .feature-card.locked { opacity: 0.6; filter: grayscale(1); }
+
+        /* Trade System */
+        .trade-window { background: white; border-radius: 20px; padding: 15px; border: 1px solid #eee; }
+        .slot-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin: 10px 0; }
+        .item-slot { aspect-ratio: 1/1; background: #f8fafc; border-radius: 8px; border: 1.5px solid #e2e8f0; position: relative; overflow: hidden; }
+        .item-slot select { width: 100%; height: 100%; opacity: 0; position: absolute; z-index: 5; cursor: pointer; }
+        .slot-icon { position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 14px; pointer-events: none; }
+        .trade-divider { margin: 15px 0; padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 800; text-align: center; background: #f1f5f9; color: #64748b; }
+
+        /* Modals */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); }
+        .modal-content { background: white; margin: 10% auto; padding: 20px; border-radius: 25px; width: 90%; max-width: 420px; max-height: 85vh; overflow-y: auto; position: relative; }
+        
+        .btn-main { width: 100%; padding: 14px; background: var(--text-main); color: white; border: none; font-weight: 700; border-radius: 12px; cursor: pointer; margin-top: 5px; }
+        .btn-sec { width: 100%; padding: 12px; background: var(--secondary); color: white; border: none; font-weight: 700; border-radius: 12px; cursor: pointer; }
+        
+        input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1.5px solid #eee; margin-bottom: 10px; outline: none; font-size: 14px; background: white; }
+
+        .cat-header { background: #f8fafc; color: #64748b; font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 8px 12px; border-radius: 6px; margin-top: 15px; letter-spacing: 1px; }
+
+        /* Admin Layout */
+        .admin-item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #f1f5f9; background: white; gap: 10px; }
+        .status-badge { padding: 6px 12px; border-radius: 8px; font-size: 10px; font-weight: bold; color: white; border: none; cursor: pointer; }
+        .bg-green { background: var(--success); }
+        .bg-red { background: var(--danger); }
+        .sold-out { opacity: 0.4; filter: grayscale(1); pointer-events: none; }
+        
+        .inr-val { color: var(--success); font-weight: 800; font-size: 14px; }
+        .m-val { color: #94a3b8; font-size: 11px; font-weight: 600; display: block; margin-top: 2px; }
+    </style>
+</head>
+<body onload="initApp()">
+
+<div class="top-nav">
+    <div class="logo">AAYUzBG</div>
+    <div id="nav-user-name">GUEST (Logged Out)</div>
+    <button onclick="toggleDropdown()" style="background:none; border:none; font-size:24px;">☰</button>
+    <div id="mainDropdown" style="display:none; position:absolute; right:15px; top:65px; background:white; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.1); width:180px; z-index:3000; border:1px solid #eee;">
+        <div id="drop-logout" onclick="logout()" style="padding:15px; border-bottom:1px solid #f1f5f9; cursor:pointer; display:none;">👤 Logout</div>
+        <div onclick="openModal('shopModal')" style="padding:15px; border-bottom:1px solid #f1f5f9; cursor:pointer;">💰 INR Shop</div>
+        <div onclick="handleAdminLogin()" style="padding:15px; color:var(--primary); cursor:pointer; font-weight: bold;">⚙️ Admin Panel</div>
+    </div>
+</div>
+
+<div id="main-tabs">
+    <button class="menu-btn active" id="btn-home" onclick="switchTab('home-sec')">HOME</button>
+    <button class="menu-btn" id="btn-trade" onclick="switchTab('trade-sec')" disabled>TRADE</button>
+    <button class="menu-btn" id="btn-nick" onclick="switchTab('nick-sec')" disabled>NICKS</button>
+</div>
+
+<section id="home-sec" class="active">
+    <div id="welcome-banner" style="background: linear-gradient(135deg, #0070f3, #7928ca); padding: 35px 20px; border-radius: 20px; color: white; text-align: center; margin-bottom: 20px;">
+        <h2 id="home-title">Skyblock Toolset</h2>
+        <p style="font-size:12px; opacity:0.9; margin-top:8px;">Premium Values & Admin Control</p>
+    </div>
+
+    <div id="auth-view" class="auth-card">
+        <h3 style="margin-bottom: 5px;">Join AAYUzBG</h3>
+        <p style="font-size: 12px; color: #666; margin-bottom: 20px;">Create an account to unlock all tools.</p>
+        <input type="text" id="signup-user" placeholder="Choose Username" class="auth-input">
+        <button onclick="handleSignup()" class="btn-sec">Create Account / Login</button>
+    </div>
+
+    <div class="grid-container">
+        <div id="card-shop" class="feature-card" onclick="openModal('shopModal')">🛍️<h3 style="font-size:13px; margin-top:8px;">Store</h3></div>
+        <div id="card-trade" class="feature-card locked" onclick="lockNotice()">⚖️<h3 style="font-size:13px; margin-top:8px;">Trade</h3></div>
+        <div id="card-value" class="feature-card locked" onclick="lockNotice()">📉<h3 style="font-size:13px; margin-top:8px;">Values</h3></div>
+        <div id="card-nick" class="feature-card locked" onclick="lockNotice()">✍️<h3 style="font-size:13px; margin-top:8px;">Nicks</h3></div>
+    </div>
+</section>
+
+<section id="trade-sec">
+    <div class="trade-window">
+        <p style="font-size:11px; font-weight:800; color:#94a3b8;">YOUR OFFER (Coins)</p>
+        <input type="number" id="yourCoins" value="0" oninput="calculateTrade()">
+        <div class="slot-grid" id="ySlots"></div>
+        <div class="trade-divider" id="status-bar">READY TO TRADE</div>
+        <p style="font-size:11px; font-weight:800; color:#94a3b8;">OPPONENT OFFER (Coins)</p>
+        <input type="number" id="oppCoins" value="0" oninput="calculateTrade()">
+        <div class="slot-grid" id="oSlots"></div>
+        <div id="trade-result" style="text-align:center; margin-top:20px; font-weight:800; font-size:20px; color:var(--secondary);">0M vs 0M</div>
+    </div>
+</section>
+
+<section id="nick-sec">
+    <div style="background:white; padding:20px; border-radius:20px; border:1px solid #eee;">
+        <h3>Nick Generator</h3>
+        <input type="text" id="nickInput" placeholder="Enter name...">
+        <button onclick="genNicks()" class="btn-main" style="background:var(--secondary);">Generate Styles</button>
+        <div id="nickOutput" style="margin-top:15px;"></div>
+    </div>
+</section>
+
+<div id="shopModal" class="modal"><div class="modal-content"><span onclick="closeModal('shopModal')" style="float:right; cursor:pointer; font-size: 24px;">✕</span><h2>Official Shop</h2><div id="shopContent"></div></div></div>
+<div id="valueModal" class="modal"><div class="modal-content"><span onclick="closeModal('valueModal')" style="float:right; cursor:pointer; font-size: 24px;">✕</span><h2>Item Prices (M)</h2><div id="fullValueList"></div></div></div>
+
+<div id="adminModal" class="modal">
+    <div class="modal-content">
+        <span onclick="closeModal('adminModal')" style="float:right; cursor:pointer; font-size: 24px;">✕</span>
+        <h2 style="margin-bottom:20px;">Admin Dashboard</h2>
+        <div style="background: #f1f5f9; padding: 15px; border-radius: 15px; margin-bottom: 25px; border: 1px solid #e2e8f0;">
+            <h4 style="margin-bottom:10px; font-size: 11px; color: var(--secondary);">ADD NEW ITEM</h4>
+            <select id="newItemCat">
+                <option value="Swords">Swords</option>
+                <option value="Armours">Armours</option>
+                <option value="Titles">Titles</option>
+            </select>
+            <input type="text" id="newItemName" placeholder="Item Name">
+            <input type="number" id="newItemVal" placeholder="Value (M)">
+            <button onclick="addNewItem()" class="btn-main" style="background:var(--success);">+ Add Item</button>
+        </div>
+        <div id="adminItemList"></div>
+    </div>
+</div>
+
+<script>
+const defaultData = {
+    "Swords": [
+        {name: "Envy Sword", val: 650, inStock: true}, {name: "Medusa Spear", val: 650, inStock: true},
+        {name: "Greed Scythe", val: 600, inStock: true}, {name: "Valkyrie Blade", val: 580, inStock: true},
+        {name: "Winter Sword", val: 550, inStock: true}, {name: "Thor Hammer", val: 500, inStock: true},
+        {name: "Ares Spear", val: 450, inStock: true}, {name: "Phoenix Wing", val: 450, inStock: true},
+        {name: "Terra Sword", val: 400, inStock: true}, {name: "Apollo Bow", val: 350, inStock: true},
+        {name: "Pride Blade", val: 300, inStock: true}, {name: "Lust Dagger", val: 300, inStock: true},
+        {name: "Hades Blade", val: 250, inStock: true}, {name: "Hermes Sword", val: 250, inStock: true},
+        {name: "Blue Light", val: 250, inStock: true}, {name: "Judgment Axe", val: 250, inStock: true},
+        {name: "Sloth Sword", val: 240, inStock: true}, {name: "Hel Sword", val: 180, inStock: true}
+    ],
+    "Armours": [
+        {name: "Gluttony Set", val: 1850, inStock: true}, {name: "Hermes Set", val: 900, inStock: true},
+        {name: "Ares Set", val: 750, inStock: true}, {name: "Medusa Set", val: 750, inStock: true},
+        {name: "Fenrir Set", val: 575, inStock: true}, {name: "Pride Set", val: 250, inStock: true},
+        {name: "Apollo Set", val: 240, inStock: true}
+    ],
+    "Titles": [
+        {name: "Hel Title", val: 6250, inStock: true}, {name: "Fenrir Title", val: 2700, inStock: true},
+        {name: "Ares Title", val: 1900, inStock: true}, {name: "Zeus Title", val: 875, inStock: true}
+    ]
+};
+
+let gameData = JSON.parse(localStorage.getItem('aayu_v13_auth')) || defaultData;
+let currentUser = localStorage.getItem('aayu_user') || null;
+
+function initApp() {
+    if(currentUser) {
+        document.getElementById('nav-user-name').innerText = "👤 " + currentUser.toUpperCase();
+        document.getElementById('home-title').innerText = "Welcome back, " + currentUser + "!";
+        document.getElementById('auth-view').style.display = "none";
+        document.getElementById('drop-logout').style.display = "block";
+        
+        // Unlock Features
+        document.getElementById('btn-trade').disabled = false;
+        document.getElementById('btn-nick').disabled = false;
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.classList.remove('locked');
+            if(card.id === 'card-trade') card.onclick = () => switchTab('trade-sec');
+            if(card.id === 'card-value') card.onclick = () => openModal('valueModal');
+            if(card.id === 'card-nick') card.onclick = () => switchTab('nick-sec');
+        });
+    }
+    refreshAllUI();
+}
+
+function handleSignup() {
+    const user = document.getElementById('signup-user').value.trim();
+    if(user.length < 3) return alert("Username too short!");
+    localStorage.setItem('aayu_user', user);
+    location.reload();
+}
+
+function lockNotice() { alert("Please Sign Up on the Home page first to use this tool!"); }
+
+// Admin Logic
+function handleAdminLogin() {
+    const u = prompt("Admin User:"), p = prompt("Admin Pass:");
+    if(u === "AAYU_OWNER" && p === "Aayuzbg@99#123#34") { renderAdminPanel(); openModal('adminModal'); }
+    else { alert("Unauthorized!"); }
+}
+
+function addNewItem() {
+    const cat = document.getElementById('newItemCat').value;
+    const name = document.getElementById('newItemName').value;
+    const val = parseInt(document.getElementById('newItemVal').value);
+    if(name && val) { gameData[cat].push({name, val, inStock: true}); saveData(); }
+}
+
+function deleteItem(c, i) { if(confirm("Delete?")) { gameData[c].splice(i, 1); saveData(); } }
+function editItemValue(c, i) {
+    const v = prompt("New Price:", gameData[c][i].val);
+    if(v) { gameData[c][i].val = parseInt(v); saveData(); }
+}
+function toggleStock(c, i) { gameData[c][i].inStock = !gameData[c][i].inStock; saveData(); }
+
+function saveData() {
+    localStorage.setItem('aayu_v13_auth', JSON.stringify(gameData));
+    refreshAllUI(); renderAdminPanel();
+}
+
+function refreshAllUI() {
+    initTradeSystem(); renderShop(); renderValueList();
+}
+
+function renderAdminPanel() {
+    let h = "";
+    for(let cat in gameData) {
+        h += `<div class="cat-header">${cat}</div>`;
+        gameData[cat].forEach((item, idx) => {
+            h += `<div class="admin-item-row">
+                <div style="flex:1"><b>${item.name}</b><br><small onclick="editItemValue('${cat}',${idx})">Val: ${item.val}M ✎</small></div>
+                <div style="display:flex; gap:5px;">
+                    <button class="status-badge ${item.inStock?'bg-green':'bg-red'}" onclick="toggleStock('${cat}',${idx})">${item.inStock?'STOCK':'OUT'}</button>
+                    <button class="status-badge" style="background:#4b5563;" onclick="deleteItem('${cat}',${idx})">🗑️</button>
+                </div>
+            </div>`;
+        });
+    }
+    document.getElementById('adminItemList').innerHTML = h;
+}
+
+function initTradeSystem() {
+    const yS = document.getElementById('ySlots'), oS = document.getElementById('oSlots');
+    yS.innerHTML = ""; oS.innerHTML = "";
+    let opts = `<option value="0">--</option>`;
+    for(let cat in gameData) {
+        opts += `<optgroup label="${cat}">`;
+        gameData[cat].forEach(i => opts += `<option value="${i.val}">${i.name}</option>`);
+        opts += `</optgroup>`;
+    }
+    for(let i=1; i<=12; i++) {
+        yS.innerHTML += `<div class="item-slot"><div class="slot-icon" id="y-icon-${i}">+</div><select id="y${i}" onchange="updateSlot('y',${i})">${opts}</select></div>`;
+        oS.innerHTML += `<div class="item-slot"><div class="slot-icon" id="o-icon-${i}">+</div><select id="o${i}" onchange="updateSlot('o',${i})">${opts}</select></div>`;
+    }
+}
+
+function renderShop() {
+    const shopDiv = document.getElementById('shopContent'); shopDiv.innerHTML = "";
+    for(let cat in gameData) {
+        let catHtml = `<div class="cat-header">${cat}</div><table style="width:100%;">`;
+        gameData[cat].forEach(item => {
+            catHtml += `<tr class="${item.inStock?'':'sold-out'}">
+                <td style="padding:15px 5px; border-bottom:1px solid #eee;"><b>${item.name}</b></td>
+                <td style="padding:15px 5px; border-bottom:1px solid #eee; text-align:right;"><span class="inr-val">₹${(item.val/2).toFixed(0)}</span><span class="m-val">${item.val}M</span></td>
+                <td style="padding:15px 5px; border-bottom:1px solid #eee; text-align:right;"><button onclick="alert('Contact Admin')" style="padding:8px 12px; border-radius:8px; background:black; color:white; font-size:10px;">${item.inStock?'BUY':'SOLD'}</button></td>
+            </tr>`;
+        });
+        shopDiv.innerHTML += catHtml + `</table>`;
+    }
+}
+
+function renderValueList() {
+    let h = "";
+    for(let cat in gameData) {
+        h += `<div class="cat-header">${cat}</div>`;
+        gameData[cat].forEach(i => h += `<div style="display:flex; justify-content:space-between; padding:15px 12px; border-bottom:1px solid #f1f5f9; background:white; font-size:14px;"><span>${i.name}</span><b style="color:var(--secondary)">${i.val}M</b></div>`);
+    }
+    document.getElementById('fullValueList').innerHTML = h;
+}
+
+function updateSlot(side, i) {
+    const sel = document.getElementById(side + i);
+    document.getElementById(side + '-icon-' + i).innerText = sel.value === "0" ? "+" : "⚔️";
+    calculateTrade();
+}
+
+function calculateTrade() {
+    let yT = Number(document.getElementById('yourCoins').value) || 0;
+    let oT = Number(document.getElementById('oppCoins').value) || 0;
+    for(let i=1; i<=12; i++) { yT += Number(document.getElementById('y'+i).value); oT += Number(document.getElementById('o'+i).value); }
+    const diff = Math.abs(yT - oT);
+    const bar = document.getElementById('status-bar');
+    document.getElementById('trade-result').innerText = `${yT}M vs ${oT}M`;
+    if(oT > yT) { bar.innerText = `PROFIT (+${diff}M)`; bar.style.background = "#dcfce7"; bar.style.color = "#166534"; }
+    else if(yT > oT) { bar.innerText = `LOSS (-${diff}M)`; bar.style.background = "#fee2e2"; bar.style.color = "#991b1b"; }
+    else { bar.innerText = "FAIR TRADE"; bar.style.background = "#f1f5f9"; bar.style.color = "#64748b"; }
+}
+
+function switchTab(id) {
+    document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + id.split('-')[0]).classList.add('active');
+}
+
+function logout() { localStorage.removeItem('aayu_user'); location.reload(); }
+function toggleDropdown() { const d = document.getElementById('mainDropdown'); d.style.display = d.style.display === 'block' ? 'none' : 'block'; }
+function openModal(id) { document.getElementById(id).style.display = "block"; document.getElementById('mainDropdown').style.display='none'; }
+function closeModal(id) { document.getElementById(id).style.display = "none"; }
+
+function genNicks() {
+    let v = document.getElementById('nickInput').value; if(!v) return;
+    let s = [`〆${v}〆`, `亗 ${v} 亗`, `『${v}』`, `×${v}×`, `々${v}々` ];
+    document.getElementById('nickOutput').innerHTML = s.map(n => `<div style="background:#f8fafc; padding:14px; margin-bottom:10px; border-radius:12px; display:flex; justify-content:space-between; border:1px solid #eee;">${n} <button onclick="navigator.clipboard.writeText('${n}'); alert('Copied!')" style="background:var(--secondary); color:white; font-size:10px; padding:6px 12px; border:none; border-radius:8px;">COPY</button></div>`).join('');
+}
+</script>
+</body>
+</html>
